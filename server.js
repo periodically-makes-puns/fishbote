@@ -2,9 +2,8 @@ const discord = require("discord.js");
 const client = new discord.Client();
 const fs = require("fs");
 const config = JSON.parse(fs.readFileSync("./config.json", {encoding: "utf-8"}));
-const fishData = JSON.parse(fs.readFileSync("./fish.json", {encoding: "utf-8"}));
-const userData = JSON.parse(fs.readFileSync("./users.json", {encoding: "utf-8"}));
 const help = require("./help.js");
+const fishEngine = require("./fish.js");
 var server;
 var mLog;
 var fLog;
@@ -24,6 +23,7 @@ client.on("ready", () => {
 });
 
 client.on("message", (message) => {
+    let fishData = JSON.parse(fs.readFileSync("./fish.json", {encoding: "utf-8"}));
     if (!message.author.bot) {
 
         // log messages
@@ -32,15 +32,32 @@ client.on("message", (message) => {
         } else {
             mLog.send(message.author.username + "#" + message.author.discriminator + ", in DMs said: \n```" + message.content + "```");
         }
-
-        if (!message.content.startsWith("f!")) {
-            let command = message.content.substr(2).split(/\s+/g)[0];
-            switch (command) {
-                case "help":
-                    help(client, message);
+        if (fishData.outstandingConfirmations.indexOf(message.author.id) != -1) {
+            if (message.content == "Y" || message.content == "y") {
+                // activate whatever
+            } else if (message.content == "N" || message.content == "n") {
+                message.channel.send("Your action has been canceled.");
+                fishData.confirmations[message.author.id] = undefined;
+                fs.writeFileSync("./fish.json", JSON.stringify(fishData));
+            } else {
+                message.channel.send("That's not Y nor N. Please, confirm.");
+            }
+        } else { 
+            if (message.content.startsWith("f!")) {
+                let command = message.content.substr(2).split(/\s+/g)[0];
+                switch (command) {
+                    case "help":
+                        help(client, message);
+                        break;
+                    case "init":
+                        fishEngine.init(client, message);
+                        break;
+                    case "invite":
+                        fishEngine.invite(client, message);
+                        break;
+                }
             }
         }
-
     }
 });
 

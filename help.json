@@ -1,11 +1,30 @@
 {
     "help": {
-        "command": "help [command]",
+        "command": "f!help [command]",
         "required": [],
         "optional": ["command"],
         "params": {
             "command": "The command to be described."
         },
-        "description": "Gets a list of commands or help for a specific command."
+        "description": "Gets a list of commands or help for a specific command.",
+        "examples": [
+            "f!help",
+            "f!help init"
+        ]
+    },
+    "init": {
+        "command": "f!init [name] [privacy]",
+        "required": ["name"],
+        "optional": ["privacy"],
+        "params": {
+            "name": "Designated name of the game. Players use this to identify the game.",
+            "privacy": "Determines if only you can add players [use 'private'] or "
+        },
+        "description": "Creates a new game.",
+        "examples": [
+            "f!init game1 public",
+            "f!init game2 private",
+            "f!init lmaololol"
+        ]
     }
 }
