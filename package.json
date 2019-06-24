@@ -1,0 +1,14 @@
+{
+  "name": "fishbote",
+  "version": "1.0.0",
+  "description": "A bot that runs Fish games.",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Eric Yang",
+  "license": "MIT",
+  "dependencies": {
+    "discord.js": "^11.5.1"
+  }
+}
