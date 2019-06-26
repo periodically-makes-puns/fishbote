@@ -13,18 +13,100 @@
         ]
     },
     "init": {
-        "command": "f!init [name] [privacy]",
+        "command": "f!init [name] [privacy] [maxPlayers]",
         "required": ["name"],
-        "optional": ["privacy"],
+        "optional": ["privacy", "maxPlayers"],
         "params": {
-            "name": "Designated name of the game. Players use this to identify the game.",
-            "privacy": "Determines if only you can add players [use 'private'] or "
+            "name": "Designated name of the game. Players use this to identify the game. Must be at least 2 chars long, without any whitespace.",
+            "privacy": "Determines if only you can add players [use 'private'] or anyone can join [use 'public', or nothing.]",
+            "maxPlayers": "Designates a maximum number of players (capped at 8, minimum 4)."
         },
         "description": "Creates a new game.",
         "examples": [
             "f!init game1 public",
             "f!init game2 private",
             "f!init lmaololol"
+        ]
+    },
+    "join": {
+        "command": "f!join [game]",
+        "required": ["game"],
+        "optional": [],
+        "params": {
+            "game": "Name of the game to be joined."
+        },
+        "description": "Joins a game, if it is open to joining.",
+        "examples": [
+            "f!join game1",
+            "f!join anotherGame"
+        ]
+    },
+    "leave": {
+        "command": "f!leave [game]",
+        "required": ["game"],
+        "optional": [],
+        "params": {
+            "game": "Name of the game to be left."
+        },
+        "description": "Leaves a game, if it is not in progress.",
+        "examples": [
+            "f!leave game1",
+            "f!leave anotherGame"
+        ]
+    },
+    "status": {
+        "command": "f!status [game]",
+        "required": ["game"],
+        "optional": [],
+        "params": {
+            "game": "Name of the game for which you are requesting data."
+        },
+        "description": "Views the status of a game.",
+        "examples": [
+            "f!status game1",
+            "f!status anotherGame"
+        ]
+    },
+    "delete": {
+        "command": "f!delete [game]",
+        "required": ["game"],
+        "optional": [],
+        "params": {
+            "game": "Name of the game you are deleting."
+        },
+        "description": "Deletes a game, if you own it.",
+        "examples": [
+            "f!delete game1",
+            "f!delete anotherGame"
+        ]
+    },
+    "alias": {
+        "command": "f!alias [alias]",
+        "required": ["alias"],
+        "optional": [],
+        "params": {
+            "alias": "Name of the alias you are assigning."
+        },
+        "description": "Takes an alias for yourself, removes an alias you own, or views the current owner of an alias.",
+        "examples": [
+            "f!alias Eric",
+            "f!alias I_don't_want_this_alias_anymore",
+            "f!alias someone_else_owns_this_alias_but_I_dunno_who"
+        ]
+    },
+    "invite": {
+        "command": "f!invite [person] [game]",
+        "required": ["person", "game"],
+        "optional": [],
+        "params": {
+            "person": "Person you are inviting.",
+            "game": "Game you are inviting them to."
+        },
+        "description": "Invites someone to a game you own, notifying them via DMs.",
+        "examples": [
+            "f!invite PMP game1",
+            "f!invite AC game2",
+            "f!invite Eric lmao"
         ]
     }
 }

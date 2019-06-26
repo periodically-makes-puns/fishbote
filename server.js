@@ -4,17 +4,16 @@ const fs = require("fs");
 const config = JSON.parse(fs.readFileSync("./config.json", {encoding: "utf-8"}));
 const help = require("./help.js");
 const fishEngine = require("./fish.js");
-var server;
-var mLog;
-var fLog;
-var rLog;
+const gameEngine = require("./game.js");
+const actionEngine = require("./actions.js");
 client.on("ready", () => {
     // initialise channels and server
-    server = client.guilds.get(config.server);
-    mLog = client.channels.get(config.channels.messageLog);
-    fLog = client.channels.get(config.channels.fishLog);
-    rLog = client.channels.get(config.channels.reasonLog);
-
+    // for ease of logging
+    global.server = client.guilds.get(config.server); 
+    global.mLog = client.channels.get(config.channels.messageLog);
+    global.fLog = client.channels.get(config.channels.fishLog);
+    global.rLog = client.channels.get(config.channels.reasonLog);
+    global.gameLog = client.channels.get(config.channels.gameLog);
     // log channel and server
     console.log("Active on server " + server.name);
     console.log("Logging messages to #" + mLog.name);
@@ -32,15 +31,35 @@ client.on("message", (message) => {
         } else {
             mLog.send(message.author.username + "#" + message.author.discriminator + ", in DMs said: \n```" + message.content + "```");
         }
-        if (fishData.outstandingConfirmations.indexOf(message.author.id) != -1) {
+        let ind = fishData.outstandingConfirmations.indexOf(message.author.id);
+        if (ind != -1) {
             if (message.content == "Y" || message.content == "y") {
-                // activate whatever
-            } else if (message.content == "N" || message.content == "n") {
-                message.channel.send("Your action has been canceled.");
+                let params = fishData.confirmations[message.author.id].split(/\s+/g);
+                switch (params[0]) {
+                    case "delete":
+                        actionEngine.delete(client, message, params[1]);
+                        break;
+                    case "join":
+                        actionEngine.join(client, message, params[1], params[2]);
+                        break;
+                }
+                fishData = JSON.parse(fs.readFileSync("./fish.json", {encoding: "utf-8"}));
+                fishData.outstandingConfirmations.splice(ind, 1);
                 fishData.confirmations[message.author.id] = undefined;
                 fs.writeFileSync("./fish.json", JSON.stringify(fishData));
-            } else {
-                message.channel.send("That's not Y nor N. Please, confirm.");
+            } else if (message.content == "N" || message.content == "n") {
+                let params = fishData.confirmations[message.author.id].split(/\s+/g);
+                switch (params[0]) {
+                    case "delete":
+                        actionEngine.noDelete(client, message, params[1]);
+                        break;
+                    case "join":
+                        actionEngine.noJoin(client, message, params[1], params[2]);
+                        break;
+                }
+                fishData.outstandingConfirmations.splice(ind, 1);
+                fishData.confirmations[message.author.id] = undefined;
+                fs.writeFileSync("./fish.json", JSON.stringify(fishData));
             }
         } else { 
             if (message.content.startsWith("f!")) {
@@ -54,6 +73,24 @@ client.on("message", (message) => {
                         break;
                     case "invite":
                         fishEngine.invite(client, message);
+                        break;
+                    case "status":
+                        fishEngine.status(client, message);
+                        break;
+                    case "join":
+                        fishEngine.join(client, message);
+                        break;
+                    case "leave":
+                        fishEngine.leave(client, message);
+                        break;
+                    case "delete":
+                        fishEngine.delete(client, message);
+                        break;
+                    case "alias":
+                        actionEngine.alias(client, message);
+                        break;
+                    case "start":
+                        gameEngine.start(client, message);
                         break;
                 }
             }
