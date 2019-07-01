@@ -5,13 +5,12 @@ module.exports.delete = (client, message, game) => {
     let fishData = JSON.parse(fs.readFileSync("./fish.json", {encoding: "utf-8"}));
     let history = JSON.parse(fs.readFileSync("./history.json", {encoding: "utf-8"}));
     let name = game + (new Date().getTime());
-    console.log(name);
-    console.log(game);
     history[name] = fishData.games[game];
     history[name].public = undefined;
     history[name].completed = false;
     history[name].active = undefined;
     history[name].turn = undefined;
+    fishData = utils.deleteGame(fishData, game);
     fishData.games[game] = undefined;
     message.channel.send(`${game} has been deleted, and its contents written to history.`);
     fLog.send(`${game} has been deleted by ${message.author.username}#${message.author.discriminator}, and its contents written to history.`)
@@ -29,6 +28,8 @@ module.exports.join = (client, message, gameName, inviter) => {
     } else if (game.players.indexOf(message.author.id) != -1){
         message.channel.send("You cannot join this game, because *you're already in it.*");
     } else {
+        fishData = utils.addUser(fishData, message.author);
+        fishData = utils.joinGame(fishData, message.author.id, gameName);
         fishData.games[gameName].players.push(message.author.id);
         fishData.games[gameName].hands.push([]);
         message.channel.send(`You have joined game ${gameName}.`);
@@ -49,7 +50,7 @@ module.exports.noJoin = (client, message, game, inviter) => {
     let roll = Math.random();
     console.log(roll);
     if (roll < 0.01) {
-        invit.send(`You have gained a new Casus Belli against ${message.author.username}#${message.author.discriminator}:\n\nDiplomatic Insult\n\n*Show superiority by winning battles.*`);
+        invit.send(`You have gained a new Casus Belli against ${message.author.username}#${message.author.discriminator}:\n\nDiplomatic Insult\n\n*Show superiority by winning Fish games.*`);
     }
 }
 

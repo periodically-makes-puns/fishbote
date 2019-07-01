@@ -8,6 +8,8 @@ module.exports.init = (client, message) => {
         if (params[1].length < 2) {
             message.channel.send("Your game name must be at least 2 characters long!");
         } else {
+            console.log(params[3]);
+            fishData = utils.addUser(fishData, message.author);
             fishData.games[params[1]] = {
                 owner: message.author.id,
                 players: [message.author.id],
@@ -85,6 +87,8 @@ module.exports.join = (client, message) => {
         } else if (game.players.length == game.maxPlayers) {
             message.channel.send("Sorry, but this game is full.");
         } else {
+            fishData = utils.addUser(fishData, message.author);
+            fishData = utils.joinGame(fishData, message.author.id, params[1]);
             game.players.push(message.author.id);
             game.hands.push([]);
             message.channel.send(`You have joined game ${params[1]}.`);
@@ -108,6 +112,7 @@ module.exports.leave = (client, message) => {
         } else if (game.players.indexOf(message.author.id) == -1){
             message.channel.send("You cannot leave this game, because *you're not in it.*");
         } else {
+            fishData = utils.leaveGame(fishData, message.author.id, params[1])
             game.hands.splice(game.players.indexOf(message.author.id), 1);
             game.players.splice(game.players.indexOf(message.author.id), 1);
             message.channel.send(`You have left game ${params[1]}.`);
@@ -172,17 +177,18 @@ module.exports.status = (client, message) => {
 module.exports.delete = (client, message) => {
     let fishData = JSON.parse(fs.readFileSync("./fish.json", {encoding: "utf-8"}));
     let params = message.content.split(/\s+/g);
-    if (params.length > 1 && fishData.games.hasOwnProperty(params[1]) && fishData.games[params[1]].owner == message.author.id) {
+    if (params.length > 1 && fishData.games.hasOwnProperty(params[1]) && fishData.games[params[1]].owner == message.author.id && !fishData.games[params[1]].active) {
         message.channel.send("Are you sure?\nSend Y to confirm, or N to cancel.");
         fishData.outstandingConfirmations.push(message.author.id);
         fishData.confirmations[message.author.id] = message.content.substr(2);
         fs.writeFileSync("./fish.json", JSON.stringify(fishData));
     } else if (params.length <= 1) {
         message.channel.send("You need to specify a game name, doofus!");
-    } 
-    else if (fishData.games[params[1]].owner != message.author.id) {
+    } else if (!fishData.games.hasOwnProperty(params[1])) {
+        message.channel.send("That game doesn't exist, doofus!");
+    } else if (fishData.games[params[1]].owner != message.author.id) {
         message.channel.send("You can't delete a game you don't own, doofus!");
     } else {
-        message.channel.send("That game doesn't exist, doofus!");
+        message.channel.send("You utter doofus, you can't delete a game that's started already!");
     }
 }

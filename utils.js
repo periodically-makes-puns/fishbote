@@ -30,3 +30,101 @@ module.exports.randomShuffle = (array) => {
     }
     return array;
 }
+
+module.exports.addUser = (fishData, user) => {
+    if (fishData.users.hasOwnProperty(user.id)) return fishData;
+    fishData.users[user.id] = {
+        "activeGames": [],
+        "wins": 0,
+        "losses": 0,
+        "suitsFor": 0,
+        "suitsAgainst": 0,
+        "pastGames": [],
+    }
+    return fishData;
+}
+
+module.exports.joinGame = (fishData, user, gameName) => {
+    fishData.users[user].activeGames.push(gameName);
+    return fishData;
+}
+
+module.exports.leaveGame = (fishData, user, gameName) => {
+    fishData.users[user].activeGames.splice(fishData.users[user].activeGames.indexOf(gameName), 1);
+    return fishData;
+}
+
+module.exports.deleteGame = (fishData, game) => {
+    for (let i = 0; i < fishData.games[game].players.length; i++) {
+        console.log(fishData.games[game].players[i]);
+        console.log(fishData.users);
+        fishData = this.leaveGame(fishData, fishData.games[game].players[i], game);
+    }
+    return fishData;
+}
+
+sortOrder = {
+    "2S": 0,
+    "3S": 1,
+    "4S": 2,
+    "5S": 3,
+    "6S": 4,
+    "7S": 5,
+    "2D": 6,
+    "3D": 7,
+    "4D": 8,
+    "5D": 9,
+    "6D": 10,
+    "7D": 11,
+    "2C": 12,
+    "3C": 13,
+    "4C": 14,
+    "5C": 15,
+    "6C": 16,
+    "7C": 17,
+    "2H": 18,
+    "3H": 19,
+    "4H": 20,
+    "5H": 21,
+    "6H": 22,
+    "7H": 23,
+    "9S": 24,
+    "TS": 25,
+    "JS": 26,
+    "QS": 27,
+    "KS": 28,
+    "AS": 29,
+    "9D": 30,
+    "TD": 31,
+    "JD": 32,
+    "QD": 33,
+    "KD": 34,
+    "AD": 35,
+    "9C": 36,
+    "TC": 37,
+    "JC": 38,
+    "QC": 39,
+    "KC": 40,
+    "AC": 41,
+    "9H": 42,
+    "TH": 43,
+    "JH": 44,
+    "QH": 45,
+    "KH": 46,
+    "AH": 47,
+    "8S": 48,
+    "8D": 49,
+    "8C": 50,
+    "8H": 51,
+    "R*": 52,
+    "B*": 53,
+}
+
+function comp(card1, card2) {
+    return sortOrder[card1] - sortOrder[card2];
+}
+
+module.exports.sortHand = (hand) => {
+    hand.sort(comp);
+    return hand;
+}

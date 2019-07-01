@@ -108,5 +108,36 @@
             "f!invite AC game2",
             "f!invite Eric lmao"
         ]
+    }, 
+    "start": {
+        "command": "f!start [game]",
+        "required": ["game"],
+        "optional": [],
+        "params": {
+            "game": "Game you are starting." 
+        },
+        "description": "Starts a game you are owner of.",
+        "examples": [
+            "f!start game1",
+            "f!start anotherGame"
+        ]
+    },
+    "f!ask": {
+        "command": "f!ask [game] [name] [rank] [suit]",
+        "required": ["game", "name", "rank", "suit"],
+        "optional": [],
+        "params": {
+            "game": "Game in which you are asking.",
+            "name": "Name of the person you are asking.",
+            "rank": "Rank of the card you are asking for; e.g. 2, 5, 10, Jack, Q, Red, Black.",
+            "suit": "Suit of the card you are asking for; e.g. D, Clubs, clovers, Jokers"
+        },
+        "description": "Asks for a card from a person in a game.\nJokers are classified as their own suit when asking, but belong to the Eights and Jokers half-suit.\nThe two Joker ranks are Red and Black.",
+        "examples": [
+            "f!ask game1 Allen Red Joker",
+            "f!ask game2 VGTheOne 5 Clubs",
+            "f!ask anotherGame AC Five C",
+            "f!ask finalOne JC B *\nThis asks for the Black Joker."
+        ]
     }
 }
