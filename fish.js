@@ -8,27 +8,34 @@ module.exports.init = (client, message) => {
         if (params[1].length < 2) {
             message.channel.send("Your game name must be at least 2 characters long!");
         } else {
-            console.log(params[3]);
-            fishData = utils.addUser(fishData, message.author);
-            fishData.games[params[1]] = {
-                owner: message.author.id,
-                players: [message.author.id],
-                public: true,
-                active: false,
-                turn: 0,
-                hands: [[]],
-                declaredLeft: [],
-                declaredRight: [],
-                queries: [],
-                maxPlayers: parseInt(params[3], 10) || 8,
-            }
-            fishData.games[params[1]].maxPlayers = Math.max(Math.min(fishData.games[params[1]].maxPlayers, 8), 4);
-            if (params.length > 2 && params[2] == "private") {
-                fishData.games[params[1]].public = false;
-            }
-            message.channel.send(`Created new game ${params[1]} with${(fishData.games[params[1]].public) ? "" : "out"} public joining and with a maximum of ${fishData.games[params[1]].maxPlayers} players.`);
-            fLog.send(`${message.author.username}#${message.author.discriminator} just created a new game called ${params[1]} with${(fishData.games[params[1]].public) ? "" : "out"} public joining and with a maximum of ${fishData.games[params[1]].maxPlayers} players.`);
-            fs.writeFileSync("./fish.json", JSON.stringify(fishData));
+            let nc;
+            server.createChannel(params[1]).then(c => {
+                c.setParent(fishCategory);
+                nc = c.id;
+                console.log("Channel made");
+                fishData = utils.addUser(fishData, message.author);
+                fishData.games[params[1]] = {
+                    owner: message.author.id,
+                    players: [message.author.id],
+                    public: true,
+                    active: false,
+                    turn: 0,
+                    hands: [[]],
+                    declaredLeft: [],
+                    declaredRight: [],
+                    queries: [],
+                    maxPlayers: parseInt(params[3], 10) || 8,
+                    channel: nc,
+                }
+                fishData.games[params[1]].maxPlayers = Math.max(Math.min(fishData.games[params[1]].maxPlayers, 8), 4);
+                if (params.length > 2 && params[2] == "private") {
+                    fishData.games[params[1]].public = false;
+                }
+                message.channel.send(`Created new game ${params[1]} with${(fishData.games[params[1]].public) ? "" : "out"} public joining and with a maximum of ${fishData.games[params[1]].maxPlayers} players.`);
+                fLog.send(`${message.author.username}#${message.author.discriminator} just created a new game called ${params[1]} with${(fishData.games[params[1]].public) ? "" : "out"} public joining and with a maximum of ${fishData.games[params[1]].maxPlayers} players.`);
+                fs.writeFileSync("./fish.json", JSON.stringify(fishData));
+            }).catch(console.error);         
+            
         }
     } else if (params.length <= 1) {
         message.channel.send("You doofus, you need to specify a game name!");
@@ -137,12 +144,16 @@ module.exports.status = (client, message) => {
             report += "**Team 1**:\n";
             for (let i = 0; i < game.players.length; i += 2) {
                 let p = game.players[i];
+                if (i == game.turn) report += "**";
                 report += client.users.get(p).username + "#" + client.users.get(p).discriminator + ` (${game.hands[i].length} card${(game.hands[i].length == 1) ? '' : "s"})\n`;
+                if (i == game.turn) report += "**";
             }
             report += "\n**Team 2**:\n";
             for (let i = 1; i < game.players.length; i += 2) {
                 let p = game.players[i];
+                if (i == game.turn) report += "**";
                 report += client.users.get(p).username + "#" + client.users.get(p).discriminator + ` (${game.hands[i].length} card${(game.hands[i].length == 1) ? '' : "s"})\n`;
+                if (i == game.turn) report += "**";
             }
             report += "\n**Status**: In Game\n\n";
             report += "**Team 1 Halfsuits**: ";
@@ -191,4 +202,31 @@ module.exports.delete = (client, message) => {
     } else {
         message.channel.send("You utter doofus, you can't delete a game that's started already!");
     }
+}
+
+module.exports.list = (client, message) => {
+    let fishData = JSON.parse(fs.readFileSync("./fish.json", {encoding: "utf-8"}));
+    let otp = "";
+    otp += "Key:\nBold: Unstarted\nItalics: Private\n\n**List of Games: **\n";
+    for (let name in fishData.games) {
+        let game = fishData.games[name];
+        if (!game.active) otp += "**";
+        if (!game.public) otp += "*";
+        otp += name;
+        otp += ` (${game.players.length} player${(game.players.length == 1) ? "" : "s"})`;
+        otp += ": ";
+        let first = true;
+        for (let id of game.players) {
+            if (!first) {
+                otp += ", ";
+            } else {
+                first = false;
+            }
+            otp += client.users.get(id).username;
+        }
+        if (!game.active) otp += "**";
+        if (!game.public) otp += "*";
+        otp += "\n";
+    }
+    message.channel.send(otp);
 }

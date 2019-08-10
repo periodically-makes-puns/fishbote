@@ -6,10 +6,12 @@ module.exports.delete = (client, message, game) => {
     let history = JSON.parse(fs.readFileSync("./history.json", {encoding: "utf-8"}));
     let name = game + (new Date().getTime());
     history[name] = fishData.games[game];
+    client.channels.get(fishData.games[game].channel).delete("Game deleted");
     history[name].public = undefined;
     history[name].completed = false;
     history[name].active = undefined;
     history[name].turn = undefined;
+    history[name].channel = undefined;
     fishData = utils.deleteGame(fishData, game);
     fishData.games[game] = undefined;
     message.channel.send(`${game} has been deleted, and its contents written to history.`);

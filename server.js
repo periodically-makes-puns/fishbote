@@ -14,6 +14,8 @@ client.on("ready", () => {
     global.fLog = client.channels.get(config.channels.fishLog);
     global.rLog = client.channels.get(config.channels.reasonLog);
     global.gameLog = client.channels.get(config.channels.gameLog);
+    global.fishCategory = client.channels.get(config.channels.fishCategory);
+    global.turnTime = config.turnTime * 1000;    
     // log channel and server
     console.log("Active on server " + server.name);
     console.log("Logging messages to #" + mLog.name);
@@ -91,6 +93,15 @@ client.on("message", (message) => {
                         break;
                     case "start":
                         gameEngine.start(client, message);
+                        break;
+                    case "ask":
+                        gameEngine.ask(client, message);
+                        break;
+                    case "hand":
+                        gameEngine.hand(client, message);
+                        break;
+                    case "list":
+                        fishEngine.list(client, message);
                         break;
                 }
             }

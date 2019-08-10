@@ -50,16 +50,7 @@ module.exports.start = (client, message) => {
             }
             if (teammates.length > 0) users[i].send(`Your teammates are:\n${teammates.join(", ")}`);
             game.hands[i] = utils.sortHand(game.hands[i]);
-            let hand = "Your hand consists of:\n"
-            for (j = 0; j < game.hands[i].length; j++) {
-                let card = game.hands[i][j];
-                console.log(card);
-                if (card.charAt(1) != "*") {
-                    hand += `${aliases[card.charAt(0)][0]}${aliases[card.charAt(1)][1]}\n`;
-                } else {
-                    hand += `The ${aliases[card.charAt(0)][1]} ${aliases[card.charAt(1)][1]}\n`;
-                }
-            }
+            let hand = "Your hand consists of:\n" + utils.printHand(game, i);
             users[i].send(hand);
         }
         let msg = "It is your turn! You may ask the following people for cards:\n";
@@ -85,6 +76,7 @@ module.exports.ask = (client, message) => {
             throw error;
         });
         message.delete();
+        return;
     }
     let fishData = JSON.parse(fs.readFileSync("./fish.json", {encoding: "utf-8"}));
     let params = message.content.split(/\s+/g);
@@ -94,6 +86,10 @@ module.exports.ask = (client, message) => {
         let a = game.players.indexOf(message.author.id);
         if (a == -1) {
             message.channel.send("You aren't part of this game, you doofus!");
+            return;
+        }
+        if (game.turn != a) {
+            message.channel.send("It's not your turn!");
             return;
         }
         let b = utils.search(client, params[2]);
@@ -109,9 +105,9 @@ module.exports.ask = (client, message) => {
         } else {
             let rank = params[3];
             let found = false;
-            for (let a of ranks) {
-                if (aliases[a].indexOf(rank) != -1) {
-                    rank = a;
+            for (let k of ranks) {
+                if (aliases[k].indexOf(rank) != -1) {
+                    rank = k;
                     found = true;
                     break;
                 }
@@ -120,10 +116,100 @@ module.exports.ask = (client, message) => {
                 message.channel.send("Woah there, we couldn't identify the rank you typed in.");
                 return;
             }
+            let suit = params[4];
+            found = false;
+            for (let k of suits) {
+                console.log(aliases[k]);
+                if (aliases[k].indexOf(suit) != -1) {
+                    suit = k;
+                    found = true;
+                    break;
+                }
+            }
+            if (!found) {
+                message.channel.send("Woah there, we couldn't identify the suit you typed in.");
+                return;
+            }
+            let card = rank + suit;
+            if (game.hands[a].indexOf(card) != -1) {
+                message.channel.send("That's in your hand, you doofus!");
+                return;
+            }
+            let d = game.hands[c].indexOf(card);
+            if (d == -1) {
+                message.channel.send(`They do not have the ${aliases[rank][0]} ${aliases[suit][1]}.`).then(m => {
+                    setTimeout(() => {
+                        m.delete();
+                    }, turnTime);
+                });
+                b.send(`${message.author.username} asked for ${aliases[rank][0]} ${aliases[suit][1]}. You didn't have it.`).then(m => {
+                    setTimeout(() => {
+                        m.delete();
+                    }, turnTime);
+                });
+                client.channels.get(game.channel).send(`${message.author.username} asked ${b.username} for the card ${aliases[rank][0]} ${aliases[suit][1]}. They did not have the card.`).then(m => {
+                    setTimeout(() => {
+                        m.delete();
+                    }, turnTime);
+                });
+                game.turn = c;
+            } else {
+                message.channel.send(`You have taken the ${aliases[rank][0]} ${aliases[suit][1]}.`).then(m => {
+                    setTimeout(() => {
+                        m.delete();
+                    }, turnTime);
+                });
+                b.send(`${message.author.username} took your ${aliases[rank][0]} ${aliases[suit][1]}!`).then(m => {
+                    setTimeout(() => {
+                        m.delete();
+                    }, turnTime);
+                });
+                game.hands[c].splice(d, 1);
+                game.hands[a].push(card);
+                game.hands[a] = utils.sortHand(game.hands[a]);
+                client.channels.get(game.channel).send(`${message.author.username} asked ${b.username} for the card ${aliases[rank][0]} ${aliases[suit][1]}. They had the card!`);
+            }
+            game.queries.push([message.author.id, b.id, card, d != -1]);
+            fs.writeFileSync("./fish.json", JSON.stringify(fishData));
         }
     } else if (params.length <= 4) {
         message.channel.send("You utter doofus, I need 4 parameters; No more, no less!");
     } else {
         message.channel.send("That game doesn't bloody exist, ya doofus!");
     }  
+}
+
+module.exports.hand = (client, message) => {
+    if (message.channel.type != "dm") {
+        message.channel.send("You gotta ask in DMs, you doofus!").then(m => {
+            setTimeout(() => {
+                m.delete();
+            }, 5000);
+        });
+        message.delete();
+        return;
+    }
+    let fishData = JSON.parse(fs.readFileSync("./fish.json", {encoding: "utf-8"}));
+    let params = message.content.split(/\s+/g);
+    if (params.length > 1 && fishData.games.hasOwnProperty(params[1])) {
+        let game = fishData.games[params[1]];
+        let a = game.players.indexOf(message.author.id);
+        if (!game.active) {
+            message.channel.send("The game hasn't started, you doofus!");
+            return;
+        }
+        if (a == -1) {
+            message.channel.send("You're not in this game, you doofus!");
+            return;
+        }
+        if (game.hands[a].length == 0) {
+            message.channel.send("Your hand is empty!");
+        } else {
+            message.channel.send("Your hand consists of: " + utils.printHand(game, a));
+        }
+    } else if (params.length <= 1) {
+        message.channel.send("Which game are you asking for, you doofus?");
+    } else {
+        message.channel.send("That game doesn't exist, you doofus!");
+    }
 }

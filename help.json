@@ -122,7 +122,7 @@
             "f!start anotherGame"
         ]
     },
-    "f!ask": {
+    "ask": {
         "command": "f!ask [game] [name] [rank] [suit]",
         "required": ["game", "name", "rank", "suit"],
         "optional": [],
@@ -138,6 +138,29 @@
             "f!ask game2 VGTheOne 5 Clubs",
             "f!ask anotherGame AC Five C",
             "f!ask finalOne JC B *\nThis asks for the Black Joker."
+        ]
+    },
+    "hand": {
+        "command": "f!hand [game]",
+        "required": ["game"],
+        "optional": [],
+        "params": {
+            "game": "Game you are querying."
+        },
+        "description": "Prints your current hand in a game.",
+        "examples": [
+            "f!hand game",
+            "f!hand Lmao"
+        ]
+    },
+    "list": {
+        "command": "f!list",
+        "required": [],
+        "optional": [],
+        "params": {},
+        "description": "Prints list of all games.",
+        "examples": [
+            "f!list"
         ]
     }
 }

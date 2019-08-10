@@ -1,5 +1,6 @@
 const fs = require("fs");
 const config = JSON.parse(fs.readFileSync("./config.json", {encoding: "utf-8"}));
+const aliases = JSON.parse(fs.readFileSync("./aliases.json", {encoding: "utf-8"}));
 
 module.exports.search = (client, name) => {
     let user = client.users.get(name);
@@ -61,6 +62,20 @@ module.exports.deleteGame = (fishData, game) => {
         fishData = this.leaveGame(fishData, fishData.games[game].players[i], game);
     }
     return fishData;
+}
+
+module.exports.printHand = (game, i) => {
+    let hand = "";
+    for (j = 0; j < game.hands[i].length; j++) {
+        let card = game.hands[i][j];
+        console.log(card);
+        if (card.charAt(1) != "*") {
+            hand += `${aliases[card.charAt(0)][0]}${aliases[card.charAt(1)][1]}\n`;
+        } else {
+            hand += `The ${aliases[card.charAt(0)][1]} ${aliases[card.charAt(1)][1]}\n`;
+        }
+    }
+    return hand;
 }
 
 sortOrder = {
