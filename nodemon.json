@@ -1,0 +1,4 @@
+{
+    "verbose": true,
+    "ignore": ["fish.json", "history.json"]
+}
