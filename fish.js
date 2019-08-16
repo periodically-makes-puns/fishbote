@@ -19,6 +19,8 @@ module.exports.init = (client, message) => {
                     players: [message.author.id],
                     public: true,
                     active: false,
+                    fishing: null,
+                    fisher: null,
                     turn: 0,
                     hands: [[]],
                     declaredLeft: [],

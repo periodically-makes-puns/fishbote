@@ -3,6 +3,74 @@ const utils = require("./utils.js");
 const aliases = JSON.parse(fs.readFileSync("./aliases.json", {encoding: "utf-8"}));
 const ranks = ["2", "3", "4", "5", "6", "7", "8", "9", "T", "J", "Q", "K", "A", "R", "B"];
 const suits = ["C", "D", "S", "H", "*"];
+const sortOrder = {
+    "2S": 0,
+    "3S": 1,
+    "4S": 2,
+    "5S": 3,
+    "6S": 4,
+    "7S": 5,
+    "2D": 6,
+    "3D": 7,
+    "4D": 8,
+    "5D": 9,
+    "6D": 10,
+    "7D": 11,
+    "2C": 12,
+    "3C": 13,
+    "4C": 14,
+    "5C": 15,
+    "6C": 16,
+    "7C": 17,
+    "2H": 18,
+    "3H": 19,
+    "4H": 20,
+    "5H": 21,
+    "6H": 22,
+    "7H": 23,
+    "9S": 24,
+    "TS": 25,
+    "JS": 26,
+    "QS": 27,
+    "KS": 28,
+    "AS": 29,
+    "9D": 30,
+    "TD": 31,
+    "JD": 32,
+    "QD": 33,
+    "KD": 34,
+    "AD": 35,
+    "9C": 36,
+    "TC": 37,
+    "JC": 38,
+    "QC": 39,
+    "KC": 40,
+    "AC": 41,
+    "9H": 42,
+    "TH": 43,
+    "JH": 44,
+    "QH": 45,
+    "KH": 46,
+    "AH": 47,
+    "8S": 48,
+    "8D": 49,
+    "8C": 50,
+    "8H": 51,
+    "R*": 52,
+    "B*": 53,
+}
+let halfsuits = {"8J": []};
+for (let i = 0; i < 4; i++) {
+    halfsuits["L" + suits[i]] = [];
+    halfsuits["H" + suits[i]] = [];
+    for (let j = 0; j < 6; j++) { // low half-suits
+        halfsuits["L" + suits[i]].push(ranks[j] + suits[i]);
+    }
+    for (let j = 0; j < 6; j++) { // high half-suits
+        halfsuits["H" + suits[i]].push(ranks[j+7] + suits[i]);
+    }
+}
+halfsuits["8J"].push(["8C", "8D", "8H", "8S", "R*", "B*"]); // 8s and jokers
 module.exports.start = (client, message) => {
     let fishData = JSON.parse(fs.readFileSync("./fish.json", {encoding: "utf-8"}));
     let params = message.content.split(/\s+/g);
@@ -92,10 +160,19 @@ module.exports.ask = (client, message) => {
             message.channel.send("It's not your turn!");
             return;
         }
+        if (game.fishing !== null) {
+            message.channel.send("**Someone is fishing a half-suit! You may not ask while they are fishing!**");
+            return;
+        }
         let b = utils.search(client, params[2]);
         if (b === null) {
-            message.channel.send("Couldn't find anyone by that description.");
-            return;
+            let n = parseInt(params[2], 10);
+            if (n < game.players.length && 0 <= n) {
+                b = client.users.get(game.players[2 * n + (1 ^ (a % 2))]);
+            } else {
+                message.channel.send("Couldn't find anyone by that description.");
+                return;
+            }
         }
         let c = game.players.indexOf(b.id);
         if (c == -1) {
@@ -131,6 +208,10 @@ module.exports.ask = (client, message) => {
                 return;
             }
             let card = rank + suit;
+            if (!sortOrder.hasOwnProperty(card)) {
+                message.channel.send("That card doesn't exist, you doofus!");
+                return;
+            }
             if (game.hands[a].indexOf(card) != -1) {
                 message.channel.send("That's in your hand, you doofus!");
                 return;
@@ -209,6 +290,45 @@ module.exports.hand = (client, message) => {
         }
     } else if (params.length <= 1) {
         message.channel.send("Which game are you asking for, you doofus?");
+    } else {
+        message.channel.send("That game doesn't exist, you doofus!");
+    }
+}
+
+
+module.exports.fish = (client, message) => {
+    let fishData = JSON.parse(fs.readFileSync("./fish.json", {encoding: "utf-8"}));
+    let params = message.content.split(/\s+/g);
+    if (params.length > 2 && fishData.games.hasOwnProperty(params[1])) {
+        let game = fishData.games[params[1]];
+        let a = game.players.indexOf(message.author.id);
+        if (a == -1) {
+            message.channel.send("You aren't in this game, you doofus!");
+            return;
+        }
+        let b = -1;
+        let halfsuit = params[3];
+        let found = false;
+        for (let k in halfsuits) {
+            if (aliases[k].indexOf(halfsuit) != -1) {
+                rank = k;
+                found = true;
+                break;
+            }
+        }
+        if (!found) {
+            message.channel.send("Woah there, we couldn't identify the halfsuit you typed in.");
+            return;
+        }
+        if (!halfsuits.hasOwnProperty(halfsuit)) {
+            message.channel.send("Woah there, that's not a valid halfsuit.");
+            return;
+        }
+        message.channel.send("**Are you sure you wish to fish? Reply Y or N.**");
+        fishData.outstandingConfirmations.push(message.author.id);
+        fishData.confirmations[message.author.id] = message.content.substr(2);
+    } else if (params.length <= 2) {
+        message.channel.send("Not enough parameters.");
     } else {
         message.channel.send("That game doesn't exist, you doofus!");
     }

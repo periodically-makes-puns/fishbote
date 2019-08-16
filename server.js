@@ -44,6 +44,9 @@ client.on("message", (message) => {
                     case "join":
                         actionEngine.join(client, message, params[1], params[2]);
                         break;
+                    case "fish":
+                        actionEngine.fish(client, message, params[1], params[2]);
+                        break;
                 }
                 fishData = JSON.parse(fs.readFileSync("./fish.json", {encoding: "utf-8"}));
                 fishData.outstandingConfirmations.splice(ind, 1);
@@ -57,6 +60,9 @@ client.on("message", (message) => {
                         break;
                     case "join":
                         actionEngine.noJoin(client, message, params[1], params[2]);
+                        break;
+                    case "fish":
+                        actionEngine.noFish(client, message, params[1], params[2]);
                         break;
                 }
                 fishData.outstandingConfirmations.splice(ind, 1);

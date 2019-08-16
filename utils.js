@@ -78,7 +78,7 @@ module.exports.printHand = (game, i) => {
     return hand;
 }
 
-sortOrder = {
+const sortOrder = {
     "2S": 0,
     "3S": 1,
     "4S": 2,

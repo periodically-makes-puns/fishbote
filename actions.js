@@ -1,6 +1,19 @@
 const fs = require("fs");
 const utils = require("./utils.js");
-
+const ranks = ["2", "3", "4", "5", "6", "7", "8", "9", "T", "J", "Q", "K", "A", "R", "B"];
+const suits = ["C", "D", "S", "H", "*"];
+let halfsuits = {"8J": []};
+for (let i = 0; i < 4; i++) {
+    halfsuits["L" + suits[i]] = [];
+    halfsuits["H" + suits[i]] = [];
+    for (let j = 0; j < 6; j++) { // low half-suits
+        halfsuits["L" + suits[i]].push(ranks[j] + suits[i]);
+    }
+    for (let j = 0; j < 6; j++) { // high half-suits
+        halfsuits["H" + suits[i]].push(ranks[j+7] + suits[i]);
+    }
+}
+halfsuits["8J"].push(["8C", "8D", "8H", "8S", "R*", "B*"]); // 8s and jokers
 module.exports.delete = (client, message, game) => {
     let fishData = JSON.parse(fs.readFileSync("./fish.json", {encoding: "utf-8"}));
     let history = JSON.parse(fs.readFileSync("./history.json", {encoding: "utf-8"}));
@@ -41,6 +54,12 @@ module.exports.join = (client, message, gameName, inviter) => {
     }
 }
 
+module.exports.fish = (client, message, gameName, halfsuit) => {
+    let fishData = JSON.parse(fs.readFileSync("./fish.json", {encoding: "utf-8"}));
+    let game = fishData.games[gameName];
+    
+}
+
 module.exports.noDelete = (client, message, game) => {
     message.channel.send(`The deletion of ${game} has been canceled.`);
 }
@@ -54,6 +73,10 @@ module.exports.noJoin = (client, message, game, inviter) => {
     if (roll < 0.01) {
         invit.send(`You have gained a new Casus Belli against ${message.author.username}#${message.author.discriminator}:\n\nDiplomatic Insult\n\n*Show superiority by winning Fish games.*`);
     }
+}
+
+module.exports.noFish = (client, message, gameName, halfsuit) => {
+    message.channel.send("Your fish has been canceled.");
 }
 
 module.exports.alias = (client, message) => {
